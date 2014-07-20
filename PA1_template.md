@@ -1,15 +1,10 @@
----
-title: "Peer Assignment 1"
-author: "Bhawna G. Panwar"
-date: "Saturday, July 19, 2014"
-output:
-  html_document:
-    keep_md: yes
-    self_contained: no
----
+# Peer Assignment 1
+Bhawna G. Panwar  
+Saturday, July 19, 2014  
 
 ###Part0: Load and preprocess the data
-```{r, echo=TRUE, message=FALSE}
+
+```r
           ##Load the library for graphs    
             require(ggplot2)
             require(reshape2)
@@ -19,30 +14,43 @@ output:
 ```
 ###Part1: The Mean total number of steps taken per day
 
-```{r part1, echo=TRUE, message=FALSE}
-         
-          
+
+```r
           ## Extract total steps from a dataframe
             totalsteps <- aggregate(steps ~ date, data=mydata, FUN=sum, na.rm=TRUE)
 
-
           ##Make histogram of the total number of steps taken each day
             ggplot(melt(totalsteps), aes(value, fill = variable)) + geom_histogram(position = "dodge") 
+```
 
+![plot of chunk part1](./PA1_template_files/figure-html/part1.png) 
+
+```r
           ##Calculate and report the mean and median total number of steps taken each day
             vectormean <- totalsteps$steps
             mean(vectormean)
-            median(vectormean)
-        
 ```
 
-Mean total number of steps per day is `r as.character(round(mean(vectormean), 0))`
+```
+## [1] 10766
+```
 
-Median total number of steps per day is `r median(vectormean)`
+```r
+            median(vectormean)
+```
+
+```
+## [1] 10765
+```
+
+Mean total number of steps per day is 10766
+
+Median total number of steps per day is 10765
 
 ###Part2: The Average daily activity pattern
 
-```{r part2,echo=TRUE, message=FALSE}
+
+```r
         ##Extract average steps from a dataframe
           avg.steps.byinterval <- aggregate(steps ~ interval, data=mydata, FUN=mean, na.rm=TRUE)
 
@@ -50,15 +58,22 @@ Median total number of steps per day is `r median(vectormean)`
         rowofmax <- which.max(avg.steps.byinterval$steps)
         intervalofmaxsteps <- (avg.steps.byinterval$interval[rowofmax])
         intervalofmaxsteps
-  
+```
+
+```
+## [1] 835
+```
+
+```r
         ##Make Time series plot of the 5-minute interval(x-axis) and the average number of steps.
           time.series.steps <- ggplot(avg.steps.byinterval, aes(interval, steps)) + geom_line()
           time.series.steps <- time.series.steps + ggtitle("Average of Steps") + scale_y_continuous(name= "Number of Steps")
           time.series.steps
-
 ```
 
-The 5- minute interval, on average across all the days in data set, which contains the maximum number of steps is `r intervalofmaxsteps` .
+![plot of chunk part2](./PA1_template_files/figure-html/part2.png) 
+
+The 5- minute interval, on average across all the days in data set, which contains the maximum number of steps is 835 .
 
 ###Part3: Following steps were used as strategy for imputing missing data and creating a new dataset
 
@@ -66,12 +81,18 @@ The merge function was used to "join" the original data set with avg.steps.byint
 
 
 
-```{r part3, echo=TRUE, message=FALSE}
 
+```r
         ##Calculate and report total number of the missing values in the dataset
           count.nas <- length(mydata[is.na(mydata$steps),1])
           count.nas
-              
+```
+
+```
+## [1] 2304
+```
+
+```r
         ##Fill in all the missing values in the dataset
         filldata <- merge(mydata, avg.steps.byinterval, by.x = "interval", by.y = "interval")
         filldata[is.na(filldata$steps.x),2] <- filldata[is.na(filldata$steps.x),4]
@@ -82,25 +103,39 @@ The merge function was used to "join" the original data set with avg.steps.byint
         ##Make Histogram of the total number of steps taken each day
         ##Vertical line shows the mean value
         ggplot(melt(totalsteps.fill), aes(value, fill = variable)) + geom_histogram(position = "dodge") + geom_vline(aes(xintercept=median(value)),color="blue", linetype="dashed", size=1)
-      
+```
+
+![plot of chunk part3](./PA1_template_files/figure-html/part3.png) 
+
+```r
         ##Calculate and report the mean and median of the total number of steps per day.
           mean(totalsteps.fill$steps.x)
-          
-          median(totalsteps.fill$steps.x)
-                
 ```
-The total number of the missing values in the dataset is `r count.nas` .
+
+```
+## [1] 10766
+```
+
+```r
+          median(totalsteps.fill$steps.x)
+```
+
+```
+## [1] 10766
+```
+The total number of the missing values in the dataset is 2304 .
 
 The results shows that both the mean and median of the total number of steps per day are identical. 
-Mean total number of steps per day is `r as.character(round(mean(totalsteps.fill$steps.x)))` .
+Mean total number of steps per day is 10766 .
 
-Median total number of steps per day is `r as.character(round(median(totalsteps.fill$steps.x)))` .
+Median total number of steps per day is 10766 .
          
 
 
 ###Part4: Activity patterns between weekdays and weekends
   Panel plot of the weekedays and Weekends shows below.
-```{r part4, echo=TRUE, message=FALSE}
+
+```r
         ## use as.Date and factor function to create weekend data frame      
         z <- weekdays(as.Date(filldata$date), abbreviate = TRUE)
         filldata$weekend <- factor(as.numeric((z == "Sat") | (z == "Sun")), labels = c("weekday", "weekend"))
@@ -115,5 +150,7 @@ Median total number of steps per day is `r as.character(round(median(totalsteps.
         ts <- ts + facet_grid(weekend ~ .) + ggtitle("Mean of Steps for all Weekdays or Weekend") + scale_y_continuous(name= "Number of Steps")
         ts
 ```
+
+![plot of chunk part4](./PA1_template_files/figure-html/part4.png) 
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

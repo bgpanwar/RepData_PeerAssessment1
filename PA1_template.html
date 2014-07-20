@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<meta name="generator" content="pandoc" />
+
+<meta name="author" content="Bhawna G. Panwar" />
+
+
+<title>Peer Assignment 1</title>
+
+<script src="PA1_template_files/jquery-1.11.0/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link href="PA1_template_files/bootstrap-2.3.2/css/bootstrap.min.css" rel="stylesheet" />
+<link href="PA1_template_files/bootstrap-2.3.2/css/bootstrap-responsive.min.css" rel="stylesheet" />
+<script src="PA1_template_files/bootstrap-2.3.2/js/bootstrap.min.js"></script>
+
+<style type="text/css">code{white-space: pre;}</style>
+<link rel="stylesheet"
+      href="PA1_template_files/highlight/default.css"
+      type="text/css" />
+<script src="PA1_template_files/highlight/highlight.js"></script>
+<style type="text/css">
+  pre:not([class]) {
+    background-color: white;
+  }
+</style>
+<script type="text/javascript">
+if (window.hljs && document.readyState && document.readyState === "complete") {
+   window.setTimeout(function() {
+      hljs.initHighlighting();
+   }, 0);
+}
+</script>
+
+
+
+</head>
+
+<body>
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+</style>
+<div class="container-fluid main-container">
+
+
+<div id="header">
+<h1 class="title">Peer Assignment 1</h1>
+<h4 class="author"><em>Bhawna G. Panwar</em></h4>
+<h4 class="date"><em>Saturday, July 19, 2014</em></h4>
+</div>
+
+
+<div id="part0-load-and-preprocess-the-data" class="section level3">
+<h3>Part0: Load and preprocess the data</h3>
+<pre class="r"><code>          ##Load the library for graphs    
+            require(ggplot2)
+            require(reshape2)
+          ## Load and preprocess the data
+          ## Read steps from file activity.csv 
+            mydata &lt;- read.csv(&quot;activity.csv&quot;, header = TRUE)</code></pre>
+</div>
+<div id="part1-the-mean-total-number-of-steps-taken-per-day" class="section level3">
+<h3>Part1: The Mean total number of steps taken per day</h3>
+<pre class="r"><code>          ## Extract total steps from a dataframe
+            totalsteps &lt;- aggregate(steps ~ date, data=mydata, FUN=sum, na.rm=TRUE)
+
+          ##Make histogram of the total number of steps taken each day
+            ggplot(melt(totalsteps), aes(value, fill = variable)) + geom_histogram(position = &quot;dodge&quot;) </code></pre>
+<p><img src="PA1_template_files/figure-html/part1.png" alt="plot of chunk part1" /></p>
+<pre class="r"><code>          ##Calculate and report the mean and median total number of steps taken each day
+            vectormean &lt;- totalsteps$steps
+            mean(vectormean)</code></pre>
+<pre><code>## [1] 10766</code></pre>
+<pre class="r"><code>            median(vectormean)</code></pre>
+<pre><code>## [1] 10765</code></pre>
+<p>Mean total number of steps per day is 10766</p>
+<p>Median total number of steps per day is 10765</p>
+</div>
+<div id="part2-the-average-daily-activity-pattern" class="section level3">
+<h3>Part2: The Average daily activity pattern</h3>
+<pre class="r"><code>        ##Extract average steps from a dataframe
+          avg.steps.byinterval &lt;- aggregate(steps ~ interval, data=mydata, FUN=mean, na.rm=TRUE)
+
+        ## Calculate interval of maximum steps  
+        rowofmax &lt;- which.max(avg.steps.byinterval$steps)
+        intervalofmaxsteps &lt;- (avg.steps.byinterval$interval[rowofmax])
+        intervalofmaxsteps</code></pre>
+<pre><code>## [1] 835</code></pre>
+<pre class="r"><code>        ##Make Time series plot of the 5-minute interval(x-axis) and the average number of steps.
+          time.series.steps &lt;- ggplot(avg.steps.byinterval, aes(interval, steps)) + geom_line()
+          time.series.steps &lt;- time.series.steps + ggtitle(&quot;Average of Steps&quot;) + scale_y_continuous(name= &quot;Number of Steps&quot;)
+          time.series.steps</code></pre>
+<p><img src="PA1_template_files/figure-html/part2.png" alt="plot of chunk part2" /></p>
+<p>The 5- minute interval, on average across all the days in data set, which contains the maximum number of steps is 835 .</p>
+</div>
+<div id="part3-following-steps-were-used-as-strategy-for-imputing-missing-data-and-creating-a-new-dataset" class="section level3">
+<h3>Part3: Following steps were used as strategy for imputing missing data and creating a new dataset</h3>
+<p>The merge function was used to “join” the original data set with avg.steps.byinterval, thus adding the average value for the interval in a new steps.y column. Then steps.x values for rows with NAs were replaced with values in the steps.y column.</p>
+<pre class="r"><code>        ##Calculate and report total number of the missing values in the dataset
+          count.nas &lt;- length(mydata[is.na(mydata$steps),1])
+          count.nas</code></pre>
+<pre><code>## [1] 2304</code></pre>
+<pre class="r"><code>        ##Fill in all the missing values in the dataset
+        filldata &lt;- merge(mydata, avg.steps.byinterval, by.x = &quot;interval&quot;, by.y = &quot;interval&quot;)
+        filldata[is.na(filldata$steps.x),2] &lt;- filldata[is.na(filldata$steps.x),4]
+      
+        ##Extract average steps from a dataframe
+        totalsteps.fill &lt;- aggregate(steps.x ~ date, data=filldata, FUN=sum)
+
+        ##Make Histogram of the total number of steps taken each day
+        ##Vertical line shows the mean value
+        ggplot(melt(totalsteps.fill), aes(value, fill = variable)) + geom_histogram(position = &quot;dodge&quot;) + geom_vline(aes(xintercept=median(value)),color=&quot;blue&quot;, linetype=&quot;dashed&quot;, size=1)</code></pre>
+<p><img src="PA1_template_files/figure-html/part3.png" alt="plot of chunk part3" /></p>
+<pre class="r"><code>        ##Calculate and report the mean and median of the total number of steps per day.
+          mean(totalsteps.fill$steps.x)</code></pre>
+<pre><code>## [1] 10766</code></pre>
+<pre class="r"><code>          median(totalsteps.fill$steps.x)</code></pre>
+<pre><code>## [1] 10766</code></pre>
+<p>The total number of the missing values in the dataset is 2304 .</p>
+<p>The results shows that both the mean and median of the total number of steps per day are identical. Mean total number of steps per day is 10766 .</p>
+<p>Median total number of steps per day is 10766 .</p>
+</div>
+<div id="part4-activity-patterns-between-weekdays-and-weekends" class="section level3">
+<h3>Part4: Activity patterns between weekdays and weekends</h3>
+<p>Panel plot of the weekedays and Weekends shows below.</p>
+<pre class="r"><code>        ## use as.Date and factor function to create weekend data frame      
+        z &lt;- weekdays(as.Date(filldata$date), abbreviate = TRUE)
+        filldata$weekend &lt;- factor(as.numeric((z == &quot;Sat&quot;) | (z == &quot;Sun&quot;)), labels = c(&quot;weekday&quot;, &quot;weekend&quot;))
+    
+
+        ##Extract average steps from weekdays and weekend
+        weekend.df &lt;- aggregate(steps.x ~ interval + weekend, data=filldata, FUN=mean)
+        
+
+        ##Plot the average steps for both Weekend and weekdays
+        ts &lt;- ggplot(weekend.df, aes(interval, steps.x)) + geom_line()
+        ts &lt;- ts + facet_grid(weekend ~ .) + ggtitle(&quot;Mean of Steps for all Weekdays or Weekend&quot;) + scale_y_continuous(name= &quot;Number of Steps&quot;)
+        ts</code></pre>
+<p><img src="PA1_template_files/figure-html/part4.png" alt="plot of chunk part4" /></p>
+<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+</div>
+
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+$(document).ready(function () {
+  $('tr.header').parent('thead').parent('table').addClass('table table-condensed');
+});
+
+</script>
+
+<!-- dynamically load mathjax for compatibility with --self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://c328740.ssl.cf1.rackcdn.com/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
